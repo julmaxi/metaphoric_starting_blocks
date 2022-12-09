@@ -10,7 +10,11 @@ def main():
     train_dataset = load_and_process_dataset("data/all_pos_train", tokenizer=tokenizer)
     test_dataset = load_and_process_dataset("data/all_pos_test", tokenizer=tokenizer)
 
-    model = transformers.AutoModelForTokenClassification.from_pretrained("bert-base-uncased", num_labels=2)
+    model = transformers.AutoModelForTokenClassification.from_pretrained(
+        "bert-base-uncased",
+        num_labels=2
+    )
+
     lr = 5e-5
     training_args = transformers.TrainingArguments(
         output_dir=f"met_train",
@@ -22,7 +26,7 @@ def main():
         warmup_ratio=0.06,
         weight_decay=0.01,
         fp16=True,
-        report_to="wandb" if False else "none",
+        report_to="none",
         save_strategy="epoch",
         save_steps=1000,
         logging_strategy="steps",

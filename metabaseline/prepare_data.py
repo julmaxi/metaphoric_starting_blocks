@@ -359,7 +359,7 @@ def main(temp_dir):
         types,
         subtypes,
         function_override)
-    
+
     return output
 
 

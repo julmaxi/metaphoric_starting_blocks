@@ -1,9 +1,9 @@
-import datasets
-from datasets.arrow_dataset import Dataset
-from transformers.tokenization_utils import PreTrainedTokenizer
 from dataclasses import dataclass
 
+import datasets
 import numpy as np
+from datasets.arrow_dataset import Dataset
+from transformers.tokenization_utils import PreTrainedTokenizer
 
 
 def load_dataset(path):
@@ -61,7 +61,7 @@ Num. Tokens:    {self.total_instances}
 %Met:           {(self.metaphor_instances / self.total_instances) * 100:.1f}
 Num. Sents:     {self.total_sentences}
 %Met Sents:     {self.metaphoric_sentences / self.total_sentences:.1f}
-%Met per MetS.: {self.metaphors_in_metaphoric_sentences / self.metaphoric_sentences:.1f}
+%Met per MetS.: {self.metaphors_in_metaphoric_sentences / self.metaphoric_sentences * 100:.1f}
         """.strip()
 
 
