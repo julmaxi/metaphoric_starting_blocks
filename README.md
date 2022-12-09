@@ -41,5 +41,5 @@ Currently the repository only supports training a single Huggingface model for S
 
 ## Code Structure
 
-All code for downloading and saving the datasets can be found in ``metabaseline.train_seq_label``. Training code is in ``metabaseline.train_seq_label``.
+All code for downloading and saving the datasets can be found in ``metabaseline.prepare_data``. Training code is in ``metabaseline.train_seq_label``.
 If you work within the transformers ecosystem, you can use the function ``metabaseline.data.load_and_process_dataset`` to directly load a ``Dataset`` instance that contains tokenized sentences and corresponding token-level labels.
