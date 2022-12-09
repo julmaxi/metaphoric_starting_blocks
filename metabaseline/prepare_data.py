@@ -1,28 +1,27 @@
 """
-Some code taken from NAACL 2018 Figurative Workshop Shared Task on Metaphor Detection
+Most code taken from NAACL 2018 Figurative Workshop Shared Task on Metaphor Detection
+See original note below:
+
 Script to parse VUA XML corpus to get text fragment, sentence id, sentence text tuples.
 
 :author: Ben Leong (cleong@ets.org)
 
 """
 
-import os
-from os.path import join
-import csv
 import configparser
-import re
-import xml.etree.ElementTree as ET
-
-from pathlib import Path
-import tempfile
-import os
-import shutil
-import zipfile
-import urllib.request
-import urllib.parse
-from collections import defaultdict
-
+import csv
 import json
+import os
+import re
+import shutil
+import tempfile
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+import zipfile
+from collections import defaultdict
+from pathlib import Path
+from typing import Iterator
 
 
 TRAINING_PARTION = [
@@ -363,22 +362,6 @@ def main(temp_dir):
     
     return output
 
-    # with open(temp_dir / 'vuamc_corpus_train.csv', 'w') as csvfile:
-    #     fieldnames = [
-    #         'txt_id',
-    #         'sentence_id',
-    #         'sentence_txt']
-
-    #     writer = csv.DictWriter(
-    #         csvfile,
-    #         fieldnames=fieldnames,
-    #         quoting=csv.QUOTE_ALL)
-    #     writer.writeheader()
-    #     writer.writerows(output)
-
-import io
-import os
-
 
 def download_zip_and_unpack(url, temp_dir, out_dir=None):
     if out_dir is not None:
@@ -406,8 +389,6 @@ def read_label_file(path):
             txt_id, sentence_id, token_id = line[0].split("_")
             yield LabelInstance(txt_id=txt_id, sentence_id=(sentence_id), token_id=int(token_id), label=line[1])
 
-from dataclasses import dataclass
-
 
 class Tok2CharMapper:
     def __init__(self, tokens) -> None:
@@ -426,7 +407,6 @@ class Tok2CharMapper:
         return " ".join(self.tokens)
 
 
-from typing import Iterator
 def make_data_file_from_sentences_and_labels(sentence_database: dict[str, dict], labels: Iterator[LabelInstance]):
     instance_database = defaultdict(list)
 
@@ -455,7 +435,7 @@ def make_data_file_from_sentences_and_labels(sentence_database: dict[str, dict],
     
     return out
 
-def download_vua_allpos():
+def download_vua():
     temp_dir = Path(tempfile.mkdtemp())
     
     download_zip_and_unpack("https://web.archive.org/web/20151023150541/http://ota.ox.ac.uk/text/2541.zip", temp_dir)
@@ -471,7 +451,6 @@ def download_vua_allpos():
         sentence["mapper"] = Tok2CharMapper(tokens)
     
     sentence_database = { (sentence["txt_id"], sentence["sentence_id"]): sentence for sentence in sentences }
-    print(list(sentence_database.keys()))
     for task_name in "all_pos", "verb":
         train_labels = read_label_file(temp_dir / "train_labels" / f"{task_name}_tokens.csv")
         test_labels = read_label_file(temp_dir / "test_labels" / f"{task_name}_tokens.csv")
@@ -489,11 +468,8 @@ def download_vua_allpos():
                 json.dump(elem, f)
                 f.write("\n")
     
-    #vua_train_path, m = urllib.request.urlretrieve("https://github.com/EducationalTestingService/metaphor/releases/download/v1.0/naacl_flp_train_gold_labels.zip", temp_dir / "2541.zip")
-
-#    shutil.move()
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
 
 if __name__ == "__main__":
-    download_vua_allpos()
+    download_vua()

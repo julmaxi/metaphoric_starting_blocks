@@ -1,18 +1,16 @@
 import datasets
 from datasets.arrow_dataset import Dataset
 from transformers.tokenization_utils import PreTrainedTokenizer
+from dataclasses import dataclass
 
 import numpy as np
 
-
-# Common format: start_char, end_char, text, label
 
 def load_dataset(path):
     instances = datasets.load_dataset("json", data_files=path)
 
     return instances["train"]
 
-from dataclasses import dataclass
 
 @dataclass
 class MetaphorDatasetStats:
