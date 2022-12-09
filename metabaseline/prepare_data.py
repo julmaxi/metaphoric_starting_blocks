@@ -435,6 +435,14 @@ def make_data_file_from_sentences_and_labels(sentence_database: dict[str, dict],
     
     return out
 
+
+def save_jsonl(path: str, instances: list):
+    with open(path, "w") as f:
+        for instance in instances:
+            json.dump(instance, f)
+            f.write("\n")
+
+
 def download_vua():
     temp_dir = Path(tempfile.mkdtemp())
     
@@ -458,18 +466,102 @@ def download_vua():
         train_out = make_data_file_from_sentences_and_labels(sentence_database, train_labels)
         test_out = make_data_file_from_sentences_and_labels(sentence_database, test_labels)
 
-        with open(f"data/{task_name}_train", "w") as f:
-            for elem in train_out:
-                json.dump(elem, f)
-                f.write("\n")
-
-        with open(f"data/{task_name}_test", "w") as f:
-            for elem in test_out:
-                json.dump(elem, f)
-                f.write("\n")
+        save_jsonl(f"data/vua_{task_name}_train.jsonl", train_out)
+        save_jsonl(f"data/vua_{task_name}_test.jsonl", test_out)
     
     shutil.rmtree(temp_dir)
 
 
+def convert_trofi_file_to_instance_format(path: str) -> list[dict]:
+    out = []
+    with open(path) as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        if header != ["verb","sentence","verb_idx","label"]:
+            raise ValueError(f"Downloaded file has unexpected columns: {header}")
+        for idx, line in enumerate(reader):
+            tokens = line[1].split()
+            verb_idx = int(line[2])
+            mapper = Tok2CharMapper(tokens)
+            char_range = mapper.token_to_char_range(verb_idx)
+
+            entry = {
+                "sentence": mapper.get_raw_string(),
+                "instance_id": idx,
+                "instances": [
+                    {
+                        "label": int(line[3]),
+                        "char_range": char_range
+                    }
+                ]
+            }       
+            out.append(entry)
+
+    return out     
+
+
+
+def convert_moh_x_file_to_instance_format(path: str) -> list[dict]:
+    out = []
+    with open(path) as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        if header not in (["arg1", "arg2", "verb", "sentence", "verb_idx", "label"], ["arg1", "arg2", "verb", "text", "verb_idx", "label"]):
+            raise ValueError(f"Downloaded file has unexpected columns: {header}")
+        for idx, line in enumerate(reader):
+            tokens = line[3].split()
+            verb_idx = int(line[4])
+            mapper = Tok2CharMapper(tokens)
+            char_range = mapper.token_to_char_range(verb_idx)
+
+            entry = {
+                "sentence": mapper.get_raw_string(),
+                "instance_id": idx,
+                "instances": [
+                    {
+                        "label": int(line[5]),
+                        "char_range": char_range
+                    }
+                ]
+            }       
+            out.append(entry)
+
+    return out
+
+
+def download_moh_x():
+    temp_dir = Path(tempfile.mkdtemp())
+
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/YU-NLPLab/DeepMet/master/data/MOH-X/MOH-X_train.csv", temp_dir / "mohx_train.csv")
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/YU-NLPLab/DeepMet/master/data/MOH-X/MOH-X_val.csv", temp_dir / "mohx_dev.csv")
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/YU-NLPLab/DeepMet/master/data/MOH-X/MOH-X_test.csv", temp_dir / "mohx_test.csv")
+
+    train_instances = convert_moh_x_file_to_instance_format(temp_dir / "mohx_train.csv")
+    dev_instances = convert_moh_x_file_to_instance_format(temp_dir / "mohx_dev.csv")
+    test_instances = convert_moh_x_file_to_instance_format(temp_dir / "mohx_test.csv")
+
+    save_jsonl("data/moh_x_train.jsonl", train_instances)
+    save_jsonl("data/moh_x_dev.jsonl", dev_instances)
+    save_jsonl("data/moh_x_test.jsonl", test_instances)
+
+    shutil.rmtree(temp_dir)
+
+
+def download_trofi():
+    temp_dir = Path(tempfile.mkdtemp())
+
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/YU-NLPLab/DeepMet/master/data/TroFi/TroFi_train.csv", temp_dir / "trofi_train.csv")
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/YU-NLPLab/DeepMet/master/data/TroFi/TroFi_test.csv", temp_dir / "trofi_test.csv")
+
+    train_instances = convert_trofi_file_to_instance_format(temp_dir / "trofi_train.csv")
+    test_instances = convert_trofi_file_to_instance_format(temp_dir / "trofi_test.csv")
+
+    save_jsonl("data/trofi_train.jsonl", train_instances)
+    save_jsonl("data/trofi_test.jsonl", test_instances)
+
+    shutil.rmtree(temp_dir)
+
 if __name__ == "__main__":
     download_vua()
+    download_trofi()
+    download_moh_x()

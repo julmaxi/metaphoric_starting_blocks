@@ -6,7 +6,7 @@ from datasets.arrow_dataset import Dataset
 from transformers.tokenization_utils import PreTrainedTokenizer
 
 
-def load_dataset(path):
+def load_dataset(path: str) -> Dataset:
     instances = datasets.load_dataset("json", data_files=path)
 
     return instances["train"]
@@ -23,7 +23,7 @@ class MetaphorDatasetStats:
     metaphors_in_metaphoric_sentences: int
 
     @classmethod
-    def from_dataset(cls, dataset: Dataset):
+    def from_dataset(cls, dataset: Dataset) -> "MetaphorDatasetStats":
         total_instances = 0
         metaphor_instances = 0
         literal_instances = 0
@@ -64,8 +64,7 @@ Num. Sents:     {self.total_sentences}
 %Met per MetS.: {self.metaphors_in_metaphoric_sentences / self.metaphoric_sentences * 100:.1f}
         """.strip()
 
-
-def load_and_process_dataset(path, tokenizer):
+def load_and_process_dataset(path: str, tokenizer: PreTrainedTokenizer) -> Dataset:
     ds = load_dataset(path)
 
     stats = MetaphorDatasetStats.from_dataset(ds)
@@ -73,7 +72,7 @@ def load_and_process_dataset(path, tokenizer):
 
     return preprocess_dataset(ds, tokenizer)
 
-def preprocess_dataset(dataset: Dataset, tokenizer: PreTrainedTokenizer):
+def preprocess_dataset(dataset: Dataset, tokenizer: PreTrainedTokenizer) -> Dataset:
     def process(elem):
         tokenized = tokenizer(elem["sentence"], padding="max_length", truncation=True, return_tensors="np")
         labels = np.full(tokenized.input_ids.shape, -100, dtype=np.int32)
